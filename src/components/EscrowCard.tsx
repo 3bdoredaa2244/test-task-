@@ -1,34 +1,93 @@
-import { EscrowAccount } from "@/types/escrow";
+// ✅ 1. Updated EscrowCard.tsx (Frontend component)
+// 📁 File: src/components/EscrowCard.tsx
+
+import React from "react";
+import { releaseEscrow, raiseDispute, moderatorResolve } from "@/utils/escrowUtils";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { AnchorProvider } from "@project-serum/anchor";
+import { PublicKey } from "@solana/web3.js";
 
-export default function EscrowCard({ escrow }: { escrow: EscrowAccount }) {
-  const { publicKey } = useWallet();
+interface EscrowCardProps {
+  buyer: string;
+  seller: string;
+  moderator: string;
+  tokenMint: string;
+  sellerTokenAccount: string;
+  buyerTokenAccount: string;
+  status: string;
+  role: "buyer" | "moderator";
+}
 
-  const isBuyer = publicKey?.toBase58() === escrow.buyer;
-  const isModerator = publicKey?.toBase58() === escrow.moderator;
+export default function EscrowCard({
+  buyer,
+  seller,
+  moderator,
+  tokenMint,
+  sellerTokenAccount,
+  buyerTokenAccount,
+  status,
+  role,
+}: EscrowCardProps) {
+  const { publicKey, wallet } = useWallet();
+
+  const provider = new AnchorProvider(window.solana, wallet, {});
+
+  const handleRelease = async () => {
+    await releaseEscrow({
+      provider,
+      buyer: new PublicKey(buyer),
+      tokenMint: new PublicKey(tokenMint),
+      sellerTokenAccount: new PublicKey(sellerTokenAccount),
+    });
+    alert("Escrow released to seller");
+  };
+
+  const handleDispute = async () => {
+    await raiseDispute({
+      provider,
+      buyer: new PublicKey(buyer),
+    });
+    alert("Dispute raised");
+  };
+
+  const handleModeratorDecision = async (releaseToSeller: boolean) => {
+    await moderatorResolve({
+      provider,
+      buyer: new PublicKey(buyer),
+      moderator: new PublicKey(moderator),
+      tokenMint: new PublicKey(tokenMint),
+      sellerTokenAccount: new PublicKey(sellerTokenAccount),
+      buyerTokenAccount: new PublicKey(buyerTokenAccount),
+      releaseToSeller,
+    });
+    alert("Moderator resolved escrow");
+  };
 
   return (
-    <div className="p-4 rounded-xl border shadow bg-white space-y-2">
-      <h3 className="text-lg font-bold">{escrow.title}</h3>
-      <p>Status: <span className="font-medium">{escrow.status}</span></p>
+    <div className="border p-4 rounded-xl shadow">
+      <h3>Escrow for Buyer: {buyer.slice(0, 8)}...</h3>
+      <p>Status: {status}</p>
 
-      {isBuyer && escrow.status === "Pending" && (
-        <div className="space-x-2">
-          <button onClick={() => releaseEscrow(escrow)}>Release</button>
-          <button onClick={() => disputeEscrow(escrow)}>Dispute</button>
+      {role === "buyer" && status === "active" && (
+        <div className="space-x-2 mt-2">
+          <button onClick={handleRelease} className="btn btn-primary">
+            Release Escrow
+          </button>
+          <button onClick={handleDispute} className="btn btn-danger">
+            Raise Dispute
+          </button>
         </div>
       )}
 
-      {isModerator && escrow.status === "Disputed" && (
-        <div className="space-x-2">
-          <button onClick={() => resolveEscrow(escrow, true)}>Send to Seller</button>
-          <button onClick={() => resolveEscrow(escrow, false)}>Refund Buyer</button>
+      {role === "moderator" && status === "disputed" && (
+        <div className="space-x-2 mt-2">
+          <button onClick={() => handleModeratorDecision(true)} className="btn btn-success">
+            Release to Seller
+          </button>
+          <button onClick={() => handleModeratorDecision(false)} className="btn btn-warning">
+            Refund Buyer
+          </button>
         </div>
-      )}
-
-      {/* Optional: Anyone can trigger auto-release */}
-      {escrow.status === "Pending" && isBuyer && (
-        <button onClick={() => autoRelease(escrow)}>Force Auto-Release</button>
       )}
     </div>
   );
