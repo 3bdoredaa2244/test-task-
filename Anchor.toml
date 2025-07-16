@@ -1,9 +1,9 @@
-[workspace]
-members = ["contracts"]
+[programs.localnet]
+funhi_escrow = "path/to/target/deploy/funhi_escrow.so"
 
-[programs.devnet]
-escrow = "PROGRAM_ID_HERE"  # Replace after deploy
+[registry]
+url = "https://anchor.projectserum.com"
 
 [provider]
-cluster = "devnet"
+cluster = "localnet"
 wallet = "~/.config/solana/id.json"
