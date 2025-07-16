@@ -1,5 +1,5 @@
 [programs.localnet]
-funhi_escrow = "path/to/target/deploy/funhi_escrow.so"
+funhi_escrow = "target/deploy/funhi_escrow-keypair.json"  # your compiled program keypair path
 
 [registry]
 url = "https://anchor.projectserum.com"
@@ -7,3 +7,6 @@ url = "https://anchor.projectserum.com"
 [provider]
 cluster = "localnet"
 wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "mocha -t 1000000 tests/"
