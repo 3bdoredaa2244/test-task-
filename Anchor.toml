@@ -1,17 +1,9 @@
 [workspace]
-members = [
-  "contracts"
-]
+members = ["contracts"]
+
+[programs.devnet]
+escrow = "PROGRAM_ID_HERE"  # Replace after deploy
 
 [provider]
 cluster = "devnet"
 wallet = "~/.config/solana/id.json"
-
-# [programs.devnet]
-# escrow = "YOUR_PROGRAM_ID_HERE"
-
-[scripts]
-test = "mocha -t 1000000 tests/"
-
-[toolchain]
-anchor_version = "0.29.0"

@@ -23,7 +23,6 @@ pub mod funhi_escrow {
         escrow.status = EscrowStatus::Pending;
         escrow.bump = *ctx.bumps.get("escrow_account").unwrap();
 
-        // Transfer tokens from buyer to vault
         token::transfer(
             ctx.accounts.transfer_ctx(),
             amount,
@@ -37,7 +36,6 @@ pub mod funhi_escrow {
         require!(escrow.status == EscrowStatus::Pending, EscrowError::InvalidStatus);
         require!(ctx.accounts.buyer.key() == escrow.buyer, EscrowError::Unauthorized);
 
-        // Transfer funds to seller
         token::transfer(
             ctx.accounts.transfer_ctx(),
             escrow.amount,
@@ -57,7 +55,6 @@ pub mod funhi_escrow {
             EscrowError::TooEarly
         );
 
-        // Auto transfer funds to seller
         token::transfer(
             ctx.accounts.transfer_ctx(),
             escrow.amount,
@@ -82,10 +79,8 @@ pub mod funhi_escrow {
         require!(ctx.accounts.moderator.key() == escrow.moderator, EscrowError::Unauthorized);
 
         if release_to_seller {
-            // Transfer to seller
             token::transfer(ctx.accounts.transfer_ctx(), escrow.amount)?;
         } else {
-            // Refund to buyer
             token::transfer(ctx.accounts.refund_ctx(), escrow.amount)?;
         }
 
